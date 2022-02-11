@@ -1,0 +1,6 @@
+#!/bin/bash
+rm $1.o
+rm $1.lst
+rm $1
+nasm -g -f elf64 -F dwarf $1.asm -l $1.lst
+ld $1.o ./functions64.o -o $1
