@@ -114,7 +114,7 @@ KeyEntry:
 	push 	keyBuffer.len
 	call 	ReadText
 	dec 	rax
-	mov 	[keycount], rax				;put number of charaters into variable
+	mov 	[keycount], rax				;put number of charaters into variable "keycount"
 
 	push 	encryptPrompt
 	call 	PrintString
@@ -122,7 +122,7 @@ KeyEntry:
 	pop 	rax 						;path of main
 	pop 	rax 						;path source
 	mov 	[sourceFileIO], rax 		;save source path
-	push 	rax
+	push 	rax 						;push rax onto stack for printString
 	call 	PrintString					;print file name
 
 	push 	toPrompt
@@ -212,11 +212,8 @@ Done:
 	call Print64bitNumDecimal
 	call Printendl
 
-
-
-
-
 jmp Exit
+
 Error1:
 	push 	errorPrompt
 	push 	errorPrompt.len
@@ -242,10 +239,10 @@ Error4:
 ;Exit: 
 Exit:
 	
-		;close file
-	mov 	rax, 3 				;close the file 
-	mov 	rdi, [inputFileD] 	;file discriptor
-	syscall						;poke kernal
+	;close file
+	mov 	rax, 3 					;close the file 
+	mov 	rdi, [inputFileD] 		;file discriptor
+	syscall							;poke kernal
 
 
 	;close file
@@ -268,29 +265,29 @@ Exit:
 
 Encrypt:
 	xor 	rsi, rsi 									;clear rsi
-	mov 	rsi, keyBuffer
+	mov 	rsi, keyBuffer								;move userinput key into rsi register
 	xor 	rdi, rdi 									;clear rdi
-	mov 	rdi, [oldBottomAddress]
-	xor 	rax, rax 									;clear eax
-	mov 	al, BYTE [keycount] 						;move into eax the number of charaters inputed by user for key
-	xor 	rbx, rbx 									;clear ebx
-	xor 	rcx, rcx 									;clear ecx
-	mov 	rcx, [bytecount]
+	mov 	rdi, [oldBottomAddress]						;move oldBottomAddress into rdi
+	xor 	rax, rax 									;clear rax
+	mov 	al, BYTE [keycount] 						;move into al (the 8bits of rax) the number of charaters inputed by user for key
+	xor 	rbx, rbx 									;clear rbx
+	xor 	rcx, rcx 									;clear rcx
+	mov 	rcx, [bytecount]  							;move into rcx(counter) the number of bytes in the file.
 
 	encryptloop:
 
-		cmp rax, [keycount]
-		jl cont
-		xor rax, rax
+		cmp rax, [keycount]								;compare the current iteration of rax to the number of chars for key and loop
+		jl cont 										;if rax has not reached the number of chars in the key, continue loop
+		xor rax, rax 									;clear rax
 		mov rsi, keyBuffer
 
 		cont: 	
-		mov bl, [rdi] 						;move charater from Sbuffer into bl
-		xor bl, [rsi] 					;xor value inside bl with value in key
-		mov [rdi], bl 				;move xor'ed value in bl to encryptbuffer
+		mov bl, [rdi] 									;move charater from Sbuffer into bl
+		xor bl, [rsi] 									;xor value inside bl with value in key
+		mov [rdi], bl 									;move xor-ed value in bl to encryptbuffer
 
 		inc rsi
-		inc rax
+		inc rax 										;increase loop counter
 		inc rdi
 	loop encryptloop
 	ret
